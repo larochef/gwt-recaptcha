@@ -1,5 +1,7 @@
 package com.sfeir.captcha.client.ui;
 
+import java.util.Properties;
+
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTML;
 import com.sfeir.captcha.shared.CaptchaResult;
@@ -11,22 +13,42 @@ import com.sfeir.captcha.shared.CaptchaResult;
  * @author François LAROCHE
  */
 public class Captcha extends Composite {
+	
+	private static final Properties DEFAULLT_CONFIGURATION;
+	
+	static {
+		DEFAULLT_CONFIGURATION = new Properties();
+		DEFAULLT_CONFIGURATION.setProperty("theme", "white");
+		DEFAULLT_CONFIGURATION.setProperty("callback", "Recaptcha.focus_response_field");
+	}
 
 	/**
 	 * id used to identify in a unic way the div in which the captcha is injected.<br />
 	 * Event if it is very unlikely, it is possible to have several captchas on the same page
 	 */
 	private final String divId;
+	
+	/**
+	 * 
+	 */
 	private final String key;
+	
+	private final Properties configuration;
+
+	public Captcha (String key) {
+		this(key, DEFAULLT_CONFIGURATION);
+	}
 
 	/**
 	 * Constructor of the widget
 	 * 
 	 * @param key the public key associated with the deployment
 	 */
-	public Captcha(String key) {
+	public Captcha(String key, Properties configuration) {
 		this.divId = "captcha-" + System.currentTimeMillis();
 		this.key = key;
+		this.configuration = configuration;
+
 		HTML content = new HTML("<div id='" + divId + "'></div>");
 		initWidget(content);
 	}
@@ -34,7 +56,7 @@ public class Captcha extends Composite {
 	@Override
 	protected void onLoad() {
 		super.onLoad();
-		injectCaptcha(this.key, this.divId);
+		injectCaptcha(this.key, this.divId, this.configuration);
 	}
 	
 	/**
@@ -45,7 +67,7 @@ public class Captcha extends Composite {
 	 */
 	public CaptchaResult validateCaptcha() {
 		CaptchaResult result = new CaptchaResult(this.key, getCaptchaChallenge(), getCaptchaResponse());
-		injectCaptcha(this.key, this.divId);
+		injectCaptcha(this.key, this.divId, this.configuration);
 		return result;
 	}
 
@@ -55,16 +77,15 @@ public class Captcha extends Composite {
 	 * @param key the public key
 	 * @param divId the id of the div in which to inject the captcha
 	 */
-	private static native void injectCaptcha(String key, String divId) /*-{
+	private static native void injectCaptcha(String key, String divId, Properties configuration) /*-{
 		var myDiv = $doc.getElementById(divId);
 		Recaptcha = $wnd.Recaptcha;
-		Recaptcha.create(key,
-			myDiv,
-			{
-				theme: "white",
-				callback: Recaptcha.focus_response_field
-			}
-		);
+		Recaptcha.create(key, myDiv, configuration);
+			// {
+			//	theme: "white",
+			//	callback: Recaptcha.focus_response_field
+			// } 
+		// );
 	}-*/;
 
 	/**
