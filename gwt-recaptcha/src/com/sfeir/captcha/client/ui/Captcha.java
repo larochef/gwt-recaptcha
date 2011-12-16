@@ -1,6 +1,10 @@
 package com.sfeir.captcha.client.ui;
 
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTML;
@@ -13,16 +17,24 @@ import com.sfeir.captcha.shared.CaptchaResult;
  * @author François LAROCHE
  */
 public class Captcha extends Composite {
+
+	private static final List<String> UNESCAPED_PROPERTIES;
 	
 	/**
 	 * default configuration for ReCaptcha, uses the the 'white'
 	 */
-	private static final Properties DEFAULLT_CONFIGURATION;
+	private static final Map<String, String> DEFAULT_CONFIGURATION;
 	
 	static {
-		DEFAULLT_CONFIGURATION = new Properties();
-		DEFAULLT_CONFIGURATION.setProperty("theme", "white");
-		DEFAULLT_CONFIGURATION.setProperty("callback", "Recaptcha.focus_response_field");
+		Map<String, String> defaultConf = new HashMap<String, String>();
+		defaultConf.put("theme", "white");
+		defaultConf.put("callback", "Recaptcha.focus_response_field");
+		DEFAULT_CONFIGURATION = Collections.unmodifiableMap(defaultConf);
+
+		List<String> properties = new ArrayList<String>();
+		properties.add("tabindex");
+		properties.add("callback");
+		UNESCAPED_PROPERTIES = Collections.unmodifiableList(properties);
 	}
 
 	/**
@@ -39,7 +51,7 @@ public class Captcha extends Composite {
 	/**
 	 * Configuration of the captcha, see the official site for more information
 	 */
-	private final Properties configuration;
+	private final Map<String, String> configuration;
 
 	/**
 	 * Constructor of the widget, using the default configuration for the captcha
@@ -47,7 +59,7 @@ public class Captcha extends Composite {
 	 * @param key the public key associated with the deployment
 	 */
 	public Captcha (String key) {
-		this(key, DEFAULLT_CONFIGURATION);
+		this(key, cloneDefaultConfiguration());
 	}
 
 	/**
@@ -56,10 +68,12 @@ public class Captcha extends Composite {
 	 * @param key the public key associated with the deployment
 	 * @param configuration the captcha configuration
 	 */
-	public Captcha(String key, Properties configuration) {
+	public Captcha(String key, Map<String, String> configuration) {
 		this.divId = "captcha-" + System.currentTimeMillis();
 		this.key = key;
 		this.configuration = configuration;
+		// force the callback method.
+		this.configuration.put("callback", DEFAULT_CONFIGURATION.get("callback"));
 
 		HTML content = new HTML("<div id='" + divId + "'></div>");
 		initWidget(content);
@@ -68,7 +82,7 @@ public class Captcha extends Composite {
 	@Override
 	protected void onLoad() {
 		super.onLoad();
-		injectCaptcha(this.key, this.divId, this.configuration);
+		injectCaptcha(this.key, this.divId, transformMapToJsAssociativeArray(this.configuration));
 	}
 	
 	/**
@@ -79,7 +93,7 @@ public class Captcha extends Composite {
 	 */
 	public CaptchaResult validateCaptcha() {
 		CaptchaResult result = new CaptchaResult(this.key, getCaptchaChallenge(), getCaptchaResponse());
-		injectCaptcha(this.key, this.divId, this.configuration);
+		injectCaptcha(this.key, this.divId, transformMapToJsAssociativeArray(this.configuration));
 		return result;
 	}
 
@@ -89,15 +103,11 @@ public class Captcha extends Composite {
 	 * @param key the public key
 	 * @param divId the id of the div in which to inject the captcha
 	 */
-	private static native void injectCaptcha(String key, String divId, Properties configuration) /*-{
+	private static native void injectCaptcha(String key, String divId, String configuration) /*-{
 		var myDiv = $doc.getElementById(divId);
 		Recaptcha = $wnd.Recaptcha;
-		Recaptcha.create(key, myDiv, configuration);
-			// {
-			//	theme: "white",
-			//	callback: Recaptcha.focus_response_field
-			// } 
-		// );
+		eval('var conf = ' + configuration);
+		Recaptcha.create(key, myDiv, conf);
 	}-*/;
 
 	/**
@@ -123,4 +133,42 @@ public class Captcha extends Composite {
 		return Recaptcha.get_response();
 	}-*/;
 
+	/**
+	 * Transforms a java Map to a String that will be evaluated to an associative array in Js
+	 * This is ugly, but so far I don't know a better way.
+	 * 
+	 * @param map the map to transform
+	 * @return the map as a String
+	 */
+	private static String transformMapToJsAssociativeArray(Map<String, String> map) {
+		String all = "{";
+		String separator;
+		for(String key : map.keySet()) {
+			if(UNESCAPED_PROPERTIES.contains(key)) {
+				separator = "";
+			}
+			else {
+				separator = "'";
+			}
+			if(!"{".equals(all)) {
+				all += ", ";
+			}
+			all += key + ": " + separator + map.get(key) + separator;
+		}
+		all += "}";
+		return all;
+	}
+
+	/**
+	 * Clone the default configuration to ensure it will not change over time
+	 * 
+	 * @return a new clone of the default configuration
+	 */
+	private static Map<String, String> cloneDefaultConfiguration() {
+		Map<String, String> configuration = new HashMap<String, String>();
+		for(String key : DEFAULT_CONFIGURATION.keySet()) {
+			configuration.put(key, DEFAULT_CONFIGURATION.get(key));
+		}
+		return configuration;
+	}
 }
