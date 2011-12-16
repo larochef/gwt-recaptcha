@@ -11,13 +11,26 @@ import com.google.gwt.user.client.ui.HTML;
 import com.sfeir.captcha.shared.CaptchaResult;
 
 /**
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+ * 
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * <br />
+ * 
  * Simple Widget displaying a captcha.<br />
  * This widget will create a div element and inject the captcha within.
  * 
- * @author FranÃ§ois LAROCHE
+ * @author François LAROCHE
  */
 public class Captcha extends Composite {
 
+	/**
+	 * List of properties that aren't string literals in the configuration. <br />
+	 * If you need more properties left unescaped, add it to the list.
+	 */
 	private static final List<String> UNESCAPED_PROPERTIES;
 	
 	/**
