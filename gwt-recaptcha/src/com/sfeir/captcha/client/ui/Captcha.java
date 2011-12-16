@@ -34,6 +34,7 @@ public class Captcha extends Composite {
 		List<String> properties = new ArrayList<String>();
 		properties.add("tabindex");
 		properties.add("callback");
+		properties.add("custom_translations");
 		UNESCAPED_PROPERTIES = Collections.unmodifiableList(properties);
 	}
 
