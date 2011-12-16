@@ -14,6 +14,9 @@ import com.sfeir.captcha.shared.CaptchaResult;
  */
 public class Captcha extends Composite {
 	
+	/**
+	 * default configuration for ReCaptcha, uses the the 'white'
+	 */
 	private static final Properties DEFAULLT_CONFIGURATION;
 	
 	static {
@@ -29,12 +32,20 @@ public class Captcha extends Composite {
 	private final String divId;
 	
 	/**
-	 * 
+	 * the public key for ReCaptcha
 	 */
 	private final String key;
 	
+	/**
+	 * Configuration of the captcha, see the official site for more information
+	 */
 	private final Properties configuration;
 
+	/**
+	 * Constructor of the widget, using the default configuration for the captcha
+	 * 
+	 * @param key the public key associated with the deployment
+	 */
 	public Captcha (String key) {
 		this(key, DEFAULLT_CONFIGURATION);
 	}
@@ -43,6 +54,7 @@ public class Captcha extends Composite {
 	 * Constructor of the widget
 	 * 
 	 * @param key the public key associated with the deployment
+	 * @param configuration the captcha configuration
 	 */
 	public Captcha(String key, Properties configuration) {
 		this.divId = "captcha-" + System.currentTimeMillis();
